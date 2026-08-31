@@ -1,0 +1,814 @@
+# ============================================================
+# BRD-AI: PCB制程能力数据库 (DFM Capability)
+# 来源: 四会制程能力初步评估 (02-10)
+#   - 硬板-关于四会制程能力初步评估-02-10.xlsx
+#   - 软板-关于四会制程能力初步评估-02-10.xlsx
+# 单位约定: 每项均带 unit 字段 (mm/um/mil/percent/ratio)
+# ============================================================
+
+meta:
+  factory: "四会"
+  revision: "2026-02-10"
+  source_files:
+    - "硬板-关于四会制程能力初步评估-02-10.xlsx"
+    - "软板-关于四会制程能力初步评估-02-10.xlsx"
+  unit_note: "mil->mm 换算 1mil=0.0254mm; 铜厚表中 T 为成品铜厚(um); L/S表为单值表示线宽=线距"
+
+board_types:
+
+  # ==========================================================
+  # 硬板 (Rigid)
+  # ==========================================================
+  rigid:
+    label: "硬板"
+    levels: [standard, automotive, extreme]
+    level_labels:
+      standard: "常规"
+      automotive: "常规(车规)"
+      extreme: "极限"
+
+    # ---------- 常规 ----------
+    standard:
+      panel:
+        max_working_panel:   { value: [720, 610], unit: mm, note: "针对通孔板，HDI需评估" }
+        max_array:           { value: [500, 500], unit: mm, note: "超过350mm需评估光学点涨缩要求" }
+        min_pcs:             { value: [10, 10], unit: mm }
+        min_breakaway_rail:  { value: 4, unit: mm }
+      stackup:
+        core_min:            { value: 0.075, unit: mm }
+        pp_options: ["106", "1080", "2116", "7628"]
+        impedance_match_tol: { value: 0.1 }
+        copper_standard:     { value: "IPC 2级" }
+      hole_copper:             # 孔铜厚度
+        class1: { value: 18, unit: um }
+        class2: { value: 20, unit: um }
+        class3: { value: 25, unit: um }
+      trace:
+        # 最小线宽/线距 L/S (um) 按成品铜厚 T(um) 分档, 单值代表线宽=线距
+        min_line_spacing_by_copper:
+          - { copper_max_um: 25,  line_um: 40,  space_um: 40 }
+          - { copper_min_um: 25,  copper_max_um: 35,  line_um: 50,  space_um: 50 }
+          - { copper_min_um: 35,  copper_max_um: 52,  line_um: 70,  space_um: 70 }
+          - { copper_min_um: 52,  copper_max_um: 70,  line_um: 85,  space_um: 85 }
+          - { copper_min_um: 70,  copper_max_um: 87,  line_um: 110, space_um: 110 }
+          - { copper_min_um: 87,  copper_max_um: 105, line_um: 140, space_um: 140 }
+        line_width_tolerance:
+          - { width_min_um: 50,  width_max_um: 75,  tol_um: 25, note: "设计值±25um" }
+          - { width_min_um: 75,  width_max_um: 100, tol_pct: 20, note: "设计值±20%" }
+          - { width_min_um: 100, width_max_um: 150, tol_pct: 20, note: "设计值±20%" }
+          - { width_min_um: 150, tol_um: 50, note: "设计值±50um" }
+        hole_to_hole_spacing:   # 不同网络孔壁间距
+          pth_to_pth:       { value: 0.35, unit: mm, note: "根据AR和铜厚对应的线距来定" }
+          pth_to_blind:     { value: 0.275, unit: mm }
+          blind_to_blind:   { value: 0.25, unit: mm }
+        trace_to_board_edge:  { inner: 0.2, outer: 0.2, unit: mm, note: "原表200um" }
+        smt_pad_position_tol:   # SMT焊盘公差 (um, 按完成铜厚T / 焊盘尺寸)
+          - { pad_max_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 105 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 140 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 160, note: "原表＞160um" }
+          - { pad_max_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 95 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+          - { pad_min_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 105 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 140 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 160, note: "原表＞160um" }
+          - { pad_min_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 95 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+        aoi_min_detect: { value: 1.57, unit: mil, note: "断路,短路,缺口,针孔" }
+      lamination:
+        dielectric_thickness_tol: { value: "0.1", note: "原表未注明单位" }
+        layer_registration: { value: 0.1, unit: mm, note: "层间压合对位公差(整体)" }
+        press_squeeze:      { value: 400, unit: um, note: "硬压接处溢胶量" }
+        board_thickness:    { min_mm: 0.4, max_mm: 6.5, note: "板厚(SM/AU/CU)" }
+      impedance:
+        tolerance_ge_50ohm: { value: 0.1, note: ">=50 Ohm各档位均为0.1" }
+        tolerance_lt_50ohm: { value: 5, unit: ohm, note: "±5ohm" }
+      drill:
+        min_mech_drill:    { value: 0.15, unit: mm }
+        max_mech_drill:    { value: 6, unit: mm }
+        laser_registration: { value: 15, unit: um }
+        min_laser_via:     { value: 75, unit: um, note: "laser通孔" }
+        min_laser_blind:   { value: 65, unit: um, note: "laser盲孔" }
+        laser_dielectric_limit:
+          - { hole_um: null, dielectric_range_um: [50, 100], note: "Laser钻孔对应介质厚度50-100um" }
+        annular_ring_mech:  { value: 0.125, unit: mm }
+        annular_ring_laser: { value: 0.1, unit: mm }
+        pth_drill_tol:  { round_mm: 0.075, note: "±0.075mm" }
+        npth_drill_tol: { round_mm: 0.05, note: "±0.05mm" }
+        hole_wall_roughness: { value: 25, unit: um }
+        hole_position_tol:
+          - { tol_mm: 0.075, note: "±0.075mm" }
+        npth_to_edge: { value: 0.2, unit: mm, note: "孔壁到板边" }
+        via_drill_tol: { value: 0.075, unit: mm, note: "Via孔管控公差(≤0.7mm, 28mil)" }
+      plating:
+        blind_via_fill_aspect:   { value: 0.8, unit: ratio, note: "镭射盲孔填孔纵横比" }
+        blind_via_fill_rate:     { value: 1, unit: ratio, note: "原表值为1(满填)" }
+        blind_via_fill_dimple:   { value: 15, unit: um, note: "盲孔填孔凹陷≤15um" }
+        plating_uniformity:      { value: 5, unit: um, note: "±5um" }
+        pth_aspect_ratio:        { value: 1, unit: ratio, note: "原表1:1，数据存疑请与板厂确认" }
+        dimple_bump_inner:       { value: 15, unit: um }
+        dimple_bump_outer:       { value: 15, unit: um }
+      plug_hole:
+        ink_types: ["PSR 2000 CD11B", "R-500BL", "R-500F12", "R-500 F41", "PSR-4000PF10W"]
+        soldermask_plug_min:  { board_thickness_mm: 0.4, hole_mm: 0.2 }
+        resin_plug_min:       { board_thickness_mm: null, hole_mm: null, note: "原表未提供" }
+        ink_plug_depth:       { value: 70, unit: percent, note: "油墨塞孔全塞深度≥70%" }
+        resin_plug_depth:     { value: 1, unit: ratio, note: "真空树脂塞孔生产1:20" }
+        resin_plug_cap_copper: { value: 5, unit: um, note: "盖铜厚度≥5um" }
+        plug_colors: [绿色, 黑色, 黄色, 白色, 蓝色]
+        plug_aspect_ratio:    { value: 10, unit: ratio, note: "考虑电镀纵横比因素" }
+        plug_alignment:       { value: 2, unit: mil }
+      solder_mask:
+        ink_thickness: { value: 20, unit: um, note: "阻焊油墨厚度(各铜厚)" }
+        min_bridge_single: { value: 100, unit: um, note: "最小阻焊桥(常规/车规)" }
+        min_opening:         { value: 0.025, unit: mm }
+        opening_tolerance:   { value: 10, unit: um }
+      silkscreen:
+        min_line_width:      { value: 4, unit: mil }
+        min_clearance:       { value: 4, unit: mil }
+        min_to_solder_mask:  { value: 4, unit: mil }
+        min_char_size:       { width_mil: 19.69, height_mil: 16.51, note: "搭配线宽4mil或5mil" }
+        min_to_outline:      { value: 4, unit: mil }
+        ink_max_thickness:   { value: 1, unit: mil }
+        ink_min_thickness:   { value: 0.39, unit: mil }
+      surface_finish:
+        ENIG:      { gold_um: [0.025, 0.1], nickel_um: [3, 8] }
+        hard_gold: { gold_um: [0.076, 3.5], nickel_um: [3, null], note: "Ni≥3um" }
+        ENEPIG:    { gold_um: [0.03, 0.1], palladium_um: [0.05, 0.3], nickel_um: [3, 8] }
+        OSP:       { film_um: [0.12, 0.35], note: "F2:0.2-0.35um; F3:0.12-0.25um" }
+        immersion_tin: { film_um: [0.8, 1.3] }
+      test:
+        min_pad: { value: 0.2, unit: mm, note: "普通电测最小PAD" }
+        shipping_test: true
+        reliability_test: true
+        shipping_report: true
+      tolerance_class: { value: "IPC 2级", note: "图纸未标注公差" }
+
+    # ---------- 常规(车规) ----------
+    automotive:
+      panel:
+        max_working_panel:   { value: [610, 540], unit: mm, note: "针对通孔板，HDI需评估" }
+        max_array:           { value: [500, 500], unit: mm }
+        min_pcs:             { value: [10, 10], unit: mm }
+        min_breakaway_rail:  { value: 5, unit: mm }
+      stackup:
+        core_min:            { value: 0.1, unit: mm }
+        pp_options: ["106", "1080", "2116"]
+        impedance_match_tol: { value: 0.1 }
+        copper_standard:     { value: "IPC 3级" }
+      hole_copper:
+        class1: { value: null, unit: um, note: "NA" }
+        class2: { value: 20, unit: um }
+        class3: { value: 25, unit: um }
+      trace:
+        min_line_spacing_by_copper:
+          - { copper_max_um: 25,  line_um: 40,  space_um: 40 }
+          - { copper_min_um: 25,  copper_max_um: 35,  line_um: 50,  space_um: 50 }
+          - { copper_min_um: 35,  copper_max_um: 52,  line_um: 70,  space_um: 70 }
+          - { copper_min_um: 52,  copper_max_um: 70,  line_um: 85,  space_um: 85 }
+          - { copper_min_um: 70,  copper_max_um: 87,  line_um: 110, space_um: 110 }
+          - { copper_min_um: 87,  copper_max_um: 105, line_um: 140, space_um: 140 }
+        line_width_tolerance:
+          - { width_min_um: 50,  width_max_um: 75,  tol_um: 25 }
+          - { width_min_um: 75,  width_max_um: 100, tol_pct: 20 }
+          - { width_min_um: 100, width_max_um: 150, tol_pct: 20 }
+          - { width_min_um: 150, tol_um: 50 }
+        hole_to_hole_spacing:
+          pth_to_pth:       { value: 0.4, unit: mm }
+          pth_to_blind:     { value: 0.3, unit: mm }
+          blind_to_blind:   { value: 0.3, unit: mm }
+        trace_to_board_edge:  { inner: 0.2, outer: 0.2, unit: mm }
+        smt_pad_position_tol:
+          - { pad_max_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 105 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 140 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 160, note: "原表＞160um" }
+          - { pad_max_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 95 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+          - { pad_min_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 105 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 140 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 160, note: "原表＞160um" }
+          - { pad_min_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 95 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+        aoi_min_detect: { value: 1.57, unit: mil }
+      lamination:
+        dielectric_thickness_tol: { value: "0.1" }
+        layer_registration: { value: 0.1, unit: mm }
+        press_squeeze:      { value: 400, unit: um }
+        board_thickness:    { min_mm: 0.4, max_mm: 6.5 }
+      impedance:
+        tolerance_ge_50ohm: { value: 0.1 }
+        tolerance_lt_50ohm: { value: 5, unit: ohm }
+      drill:
+        min_mech_drill:    { value: 0.15, unit: mm }
+        max_mech_drill:    { value: 6, unit: mm }
+        laser_registration: { value: 15, unit: um }
+        min_laser_via:     { value: 75, unit: um }
+        min_laser_blind:   { value: 65, unit: um }
+        laser_dielectric_limit:
+          - { hole_um: null, dielectric_range_um: [50, 100] }
+        annular_ring_mech:  { value: 0.125, unit: mm }
+        annular_ring_laser: { value: 0.1, unit: mm }
+        pth_drill_tol:  { round_mm: 0.075 }
+        npth_drill_tol: { round_mm: 0.05 }
+        hole_wall_roughness: { value: 25, unit: um }
+        hole_position_tol:
+          - { tol_mm: 0.075 }
+        npth_to_edge: { value: 0.2, unit: mm }
+        via_drill_tol: { value: 0.075, unit: mm }
+      plating:
+        blind_via_fill_aspect:   { value: 1.0, unit: ratio }
+        blind_via_fill_rate:     { value: 1, unit: ratio, note: "原表值为1(满填)" }
+        blind_via_fill_dimple:   { value: 15, unit: um }
+        plating_uniformity:      { value: 5, unit: um }
+        pth_aspect_ratio:        { value: 1, unit: ratio, note: "原表1:1，数据存疑请与板厂确认" }
+        dimple_bump_inner:       { value: 15, unit: um }
+        dimple_bump_outer:       { value: 15, unit: um }
+      plug_hole:
+        ink_types: ["PSR 2000 CD11B", "R-500BL", "R-500F12", "R-500 F41", "PSR-4000PF10W"]
+        soldermask_plug_min:  { board_thickness_mm: 0.4, hole_mm: 0.2 }
+        resin_plug_min:       { board_thickness_mm: null, hole_mm: null, note: "原表未提供" }
+        ink_plug_depth:       { value: 70, unit: percent }
+        resin_plug_depth:     { value: 1, unit: ratio }
+        resin_plug_cap_copper: { value: 5, unit: um }
+        plug_colors: [绿色, 黑色, 黄色, 白色, 蓝色]
+        plug_aspect_ratio:    { value: 10, unit: ratio }
+        plug_alignment:       { value: 2, unit: mil }
+      solder_mask:
+        ink_thickness: { value: 20, unit: um }
+        min_bridge_single: { value: 100, unit: um }
+        min_opening:         { value: 0.05, unit: mm }
+        opening_tolerance:   { value: 10, unit: um }
+      silkscreen:
+        min_line_width:      { value: 4, unit: mil }
+        min_clearance:       { value: 4, unit: mil }
+        min_to_solder_mask:  { value: 4, unit: mil }
+        min_char_size:       { width_mil: 19.69, height_mil: 16.51 }
+        min_to_outline:      { value: 4, unit: mil }
+        ink_max_thickness:   { value: 1, unit: mil }
+        ink_min_thickness:   { value: 0.39, unit: mil }
+      surface_finish:
+        ENIG:      { gold_um: [0.025, 0.1], nickel_um: [3, 8] }
+        hard_gold: { gold_um: [0.076, 3.5], nickel_um: [3, null] }
+        ENEPIG:    { gold_um: [0.03, 0.1], palladium_um: [0.05, 0.3], nickel_um: [3, 8] }
+        OSP:       { film_um: [0.12, 0.35] }
+        immersion_tin: { film_um: [0.8, 1.3] }
+      test:
+        min_pad: { value: 0.3, unit: mm }
+        shipping_test: true
+        reliability_test: true
+        shipping_report: true
+      tolerance_class: { value: "IPC 3级" }
+
+    # ---------- 极限 ----------
+    extreme:
+      panel:
+        max_working_panel:   { value: [1220, 720], unit: mm, note: "针对通孔板，HDI需评估" }
+        max_array:           { value: [500, 500], unit: mm }
+        min_pcs:             { value: [10, 10], unit: mm }
+        min_breakaway_rail:  { value: 3.5, unit: mm }
+      stackup:
+        core_min:            { value: 0.05, unit: mm }
+        pp_options: ["1027", "1017", "106", "1080", "2116"]
+        impedance_match_tol: { value: 0.075 }
+        copper_standard:     { value: "IPC 3级" }
+      hole_copper:
+        class1: { value: 18, unit: um }
+        class2: { value: 20, unit: um }
+        class3: { value: 25, unit: um }
+      trace:
+        min_line_spacing_by_copper:
+          - { copper_max_um: 25,  line_um: 40,  space_um: 40 }
+          - { copper_min_um: 25,  copper_max_um: 35,  line_um: 50,  space_um: 50 }
+          - { copper_min_um: 35,  copper_max_um: 52,  line_um: 70,  space_um: 70 }
+          - { copper_min_um: 52,  copper_max_um: 70,  line_um: 85,  space_um: 85 }
+          - { copper_min_um: 70,  copper_max_um: 87,  line_um: 110, space_um: 110 }
+          - { copper_min_um: 87,  copper_max_um: 105, line_um: 140, space_um: 140 }
+        line_width_tolerance:
+          - { width_min_um: 50,  width_max_um: 75,  tol_um: 25 }
+          - { width_min_um: 75,  width_max_um: 100, tol_pct: 20 }
+          - { width_min_um: 100, width_max_um: 150, tol_pct: 20 }
+          - { width_min_um: 150, tol_um: 50 }
+        hole_to_hole_spacing:
+          pth_to_pth:       { value: 0.4, unit: mm }
+          pth_to_blind:     { value: 0.25, unit: mm }
+          blind_to_blind:   { value: 0.225, unit: mm }
+        trace_to_board_edge:  { inner: 0.2, outer: 0.2, unit: mm }
+        smt_pad_position_tol:
+          - { pad_max_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 95 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+          - { pad_max_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 85 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 120 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 140, note: "原表＞140um" }
+          - { pad_min_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 95 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+          - { pad_min_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 85 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 120 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 140, note: "原表＞140um" }
+        aoi_min_detect: { value: 1.37, unit: mil }
+      lamination:
+        dielectric_thickness_tol: { value: "0.08" }
+        layer_registration: { value: 0.1, unit: mm }
+        press_squeeze:      { value: 300, unit: um }
+        board_thickness:    { min_mm: 0.4, max_mm: 6.5 }
+      impedance:
+        tolerance_ge_50ohm: { value: 0.1 }
+        tolerance_lt_50ohm: { value: 5, unit: ohm }
+      drill:
+        min_mech_drill:    { value: 0.15, unit: mm }
+        max_mech_drill:    { value: 6, unit: mm }
+        laser_registration: { value: 15, unit: um }
+        min_laser_via:     { value: 75, unit: um }
+        min_laser_blind:   { value: 65, unit: um }
+        laser_dielectric_limit:
+          - { hole_um: null, dielectric_range_um: [50, 100] }
+        annular_ring_mech:  { value: 0.1, unit: mm }
+        annular_ring_laser: { value: 0.05, unit: mm }
+        pth_drill_tol:  { round_mm: 0.05 }
+        npth_drill_tol: { round_mm: 0.025 }
+        hole_wall_roughness: { value: 20, unit: um }
+        hole_position_tol:
+          - { tol_mm: 0.05 }
+        npth_to_edge: { value: 0.2, unit: mm }
+        via_drill_tol: { value: 0.05, unit: mm }
+      plating:
+        blind_via_fill_aspect:   { value: 1.0, unit: ratio }
+        blind_via_fill_rate:     { value: 1, unit: ratio, note: "原表值为1(满填)" }
+        blind_via_fill_dimple:   { value: 15, unit: um }
+        plating_uniformity:      { value: 5, unit: um }
+        pth_aspect_ratio:        { value: 1, unit: ratio, note: "原表1:1，数据存疑请与板厂确认" }
+        dimple_bump_inner:       { value: 15, unit: um }
+        dimple_bump_outer:       { value: 15, unit: um }
+      plug_hole:
+        ink_types: ["PSR 2000 CD11B", "R-500BL", "R-500F12", "R-500 F41", "PSR-4000PF10W"]
+        soldermask_plug_min:  { board_thickness_mm: 0.4, hole_mm: 0.2 }
+        resin_plug_min:       { board_thickness_mm: null, hole_mm: null, note: "原表未提供" }
+        ink_plug_depth:       { value: 70, unit: percent }
+        resin_plug_depth:     { value: 1, unit: ratio }
+        resin_plug_cap_copper: { value: 5, unit: um }
+        plug_colors: [绿色, 黑色, 黄色, 白色, 蓝色]
+        plug_aspect_ratio:    { value: 10, unit: ratio }
+        plug_alignment:       { value: 2, unit: mil }
+      solder_mask:
+        ink_thickness: { value: 20, unit: um }
+        min_bridge_single: { value: 80, unit: um }
+        min_opening:         { value: 0.025, unit: mm }
+        opening_tolerance:   { value: 10, unit: um }
+      silkscreen:
+        min_line_width:      { value: 3, unit: mil }
+        min_clearance:       { value: 3, unit: mil }
+        min_to_solder_mask:  { value: 3, unit: mil }
+        min_char_size:       { width_mil: 19.69, height_mil: 16.51 }
+        min_to_outline:      { value: 4, unit: mil }
+        ink_max_thickness:   { value: 1, unit: mil }
+        ink_min_thickness:   { value: 0.39, unit: mil }
+      surface_finish:
+        ENIG:      { gold_um: [0.025, 0.1], nickel_um: [3, 8] }
+        hard_gold: { gold_um: [0.076, 3.5], nickel_um: [3, null] }
+        ENEPIG:    { gold_um: [0.03, 0.1], palladium_um: [0.05, 0.3], nickel_um: [3, 8] }
+        OSP:       { film_um: [0.12, 0.35] }
+        immersion_tin: { film_um: [0.8, 1.3] }
+      test:
+        min_pad: { value: 0.08, unit: mm }
+        shipping_test: true
+        reliability_test: true
+        shipping_report: true
+      tolerance_class: { value: "IPC 3级" }
+
+  # ==========================================================
+  # 软板 / 软硬结合板 (Flex / Rigid-Flex)
+  # ==========================================================
+  flex:
+    label: "软板及软硬结合板"
+    levels: [standard, automotive, extreme]
+    level_labels:
+      standard: "常规"
+      automotive: "常规(车规)"
+      extreme: "极限"
+
+    # ---------- 常规 ----------
+    standard:
+      panel:
+        max_working_panel:   { value: [500, 403], unit: mm }
+        max_pcs:             { value: [500, 300], unit: mm }
+        min_pcs:             { value: [5, 5], unit: mm }
+        max_array:           { value: [500, 300], unit: mm }
+        min_array:           { value: [20, 20], unit: mm }
+        set_to_set_min_gap:  { value: 5, unit: mm }
+        set_min_tooling_rail: { value: 5, unit: mm }
+        set_min_waste_rail:  { value: 5, unit: mm }
+        panel_waste_rail:    { value: 15, unit: mm }
+      stackup:
+        max_layers: { value: 10 }
+        materials: ["FR4", "PP", "纯胶"]
+        impedance_match_tol: { value: 0.1 }
+        copper_standard: { value: "参考IPC标准" }
+      trace:
+        min_line_spacing_by_copper:
+          - { copper_max_um: 25,  line_um: 40,  space_um: 40 }
+          - { copper_min_um: 25,  copper_max_um: 35,  line_um: 50,  space_um: 50 }
+          - { copper_min_um: 35,  copper_max_um: 52,  line_um: 70,  space_um: 70 }
+          - { copper_min_um: 52,  copper_max_um: 70,  line_um: 85,  space_um: 85 }
+          - { copper_min_um: 70,  copper_max_um: 87,  line_um: 110, space_um: 110 }
+          - { copper_min_um: 87,  copper_max_um: 105, line_um: 140, space_um: 140 }
+        line_width_tolerance:
+          - { width_min_um: 50,  width_max_um: 75,  tol_um: 25 }
+          - { width_min_um: 75,  width_max_um: 100, tol_pct: 20 }
+          - { width_min_um: 100, width_max_um: 150, tol_pct: 20 }
+          - { width_min_um: 150, tol_um: 50 }
+        hole_to_hole_spacing:
+          pth_to_pth:       { value: 0.35, unit: mm }
+          pth_to_blind:     { value: 0.275, unit: mm }
+          blind_to_blind:   { value: 0.25, unit: mm }
+        trace_to_board_edge:  { inner: 0.2, outer: 0.2, unit: mm }
+        smt_pad_position_tol:
+          - { pad_max_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 105 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 140 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 160, note: "原表＞160um" }
+          - { pad_max_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 95 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+          - { pad_min_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 105 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 140 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 160, note: "原表＞160um" }
+          - { pad_min_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 95 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+        aoi_min_detect: { value: 1.57, unit: mil }
+      lamination:
+        dielectric_thickness_tol: { value: "0.15" }
+        layer_registration: { value: 0.1, unit: mm }
+        rigid_flex_squeeze: { value: 0.3, unit: mm, note: "软硬压接处溢胶量≤0.3mm" }
+      impedance:
+        tolerance_bands: { value: 0.1, note: "<50/50-80/80-130/130-150/>150 Ohm 均为0.1" }
+      drill:
+        min_mech_drill:    { value: 0.15, unit: mm }
+        max_mech_drill:    { value: 6, unit: mm }
+        laser_registration: { value: 15, unit: um }
+        min_laser_via:     { value: 75, unit: um }
+        min_laser_blind:   { value: 65, unit: um }
+        laser_dielectric_limit:
+          - { hole_um: null, dielectric_range_um: [50, 100] }
+        annular_ring_mech:  { value: 0.125, unit: mm }
+        annular_ring_laser: { value: 0.1, unit: mm }
+        pth_drill_tol:  { round_mm: 0.075 }
+        npth_drill_tol: { round_mm: 0.05 }
+        hole_wall_roughness: { value: 25, unit: um }
+        hole_position_tol:
+          - { tol_mm: 0.075 }
+        npth_to_edge: { value: 0.2, unit: mm, note: "不破孔0.2mm，接受破孔0mm" }
+        via_drill_tol: { value: 0.075, unit: mm, note: "Via孔管控公差(≤0.7mm, 28mil)" }
+      plating:
+        blind_via_fill_aspect:   { value: 0.8, unit: ratio }
+        blind_via_fill_rate:     { value: 1, unit: ratio, note: "原表值为1(满填)" }
+        blind_via_fill_dimple:   { value: 15, unit: um }
+        plating_uniformity:      { value: 5, unit: um }
+        pth_aspect_ratio:        { value: 20, unit: ratio }
+        dimple_bump_inner:       { value: 15, unit: um }
+        dimple_bump_outer:       { value: 15, unit: um }
+      plug_hole:
+        ink_types: ["PSR 2000 CD11B", "R-500BL", "R-500F12", "R-500 F41", "PSR-4000PF10W"]
+        soldermask_plug_min:  { board_thickness_mm: 0.4, hole_mm: 0.2 }
+        resin_plug_min:       { board_thickness_mm: 0.2, hole_mm: 0.1, hole_max_mm: 0.8 }
+        ink_plug_depth:       { value: 70, unit: percent }
+        resin_plug_depth:     { value: 1, unit: ratio, note: "原表值为1(满塞)" }
+        resin_plug_cap_copper: { value: 5, unit: um }
+        plug_colors: [绿色, 黑色, 黄色, 白色, 蓝色]
+        plug_aspect_ratio:    { value: 10, unit: ratio }
+        plug_alignment:       { value: 2, unit: mil }
+      solder_mask:
+        ink_thickness: { value: 20, unit: um }
+        min_bridge_single: { value: 100, unit: um }
+        min_opening:         { value: 0.025, unit: mm }
+        opening_tolerance:   { value: 10, unit: um }
+      coverlay:                # 覆盖膜 (软板专有)
+        min_drill:           { value: 0.15, unit: mm }
+        min_window_rect:     { value: [0.6, 0.6], unit: mm }
+        min_window_spacing:  { value: 0.5, unit: mm }
+        window_to_pad:       { value: 0.2, unit: mm, note: "原表±0.2mm" }
+        window_to_trace:     { value: 0.2, unit: mm, note: "原表±0.2mm" }
+        alignment_tol:       { value: 0.2, unit: mm }
+        squeeze_per_side:    { value: 0.15, unit: mm, note: "≤0.15mm" }
+        max_glue_copper_ratio: { value: 1.4, note: "≤1:1.4" }
+      silkscreen:
+        min_line_width:      { value: 4, unit: mil }
+        min_clearance:       { value: 4, unit: mil }
+        min_to_solder_mask:  { value: 4, unit: mil }
+        min_char_size:       { width_mil: 19.69, height_mil: 16.51 }
+        min_to_outline:      { value: 4, unit: mil }
+        ink_max_thickness:   { value: 1, unit: mil }
+        ink_min_thickness:   { value: 0.39, unit: mil }
+      surface_finish:
+        ENIG:      { gold_um: [0.025, 0.1], nickel_um: [3, 8] }
+        hard_gold: { gold_um: [0.076, 3.5], nickel_um: [3, null] }
+        ENEPIG:    { gold_um: [0.03, 0.1], palladium_um: [0.05, 0.3], nickel_um: [3, 8] }
+        OSP:       { film_um: [0.12, 0.35], note: "F2:0.2-0.35um; F3:0.12-0.25um" }
+      routing:                 # 锣型
+        min_routing_width:   { value: 0.8, unit: mm, note: "≧0.8mm" }
+        min_waste_width:     { value: 3.5, unit: mm, note: "unit by unit" }
+        min_hole_to_edge:    { value: 1.5, unit: mm }
+        min_board_size:      { value: [10, 10], unit: mm }
+        outline_tolerance:   { value: 0.1, unit: mm }
+      fpc_outline:
+        outline_tolerance:   { value: 0.1, unit: mm }
+      stiffener:               # 补强
+        steel_alignment_tol: { value: 0.15, unit: mm }
+        steel_to_outline:    { normal: 0.15, trapezoid: 0.15, unit: mm, note: "钢片距外形边≥0.15mm" }
+        press_fit_size:      { value: [650, 550], unit: mm, note: "假贴机补强贴合外形尺寸" }
+        press_fit_thickness: { value: 2.0, unit: mm }
+        press_fit_fpc_size:  { value: [650, 550], unit: mm }
+        pi_alignment_tol:    { machine: 0.1, manual: 0.1, unit: mm, note: "钢片假贴机机贴" }
+        fr4_alignment_tol:   { machine: 0.15, manual: 0.15, unit: mm }
+      test:
+        min_pad: { value: 0.2, unit: mm }
+        shipping_report: true
+        reliability_report: true
+      dimensional:             # 尺寸制程能力 (尺寸表)
+        mask_mark_to_mark:        { value: 0.075, unit: mm }
+        mask_mark_to_pad_center:  { value: 0.075, unit: mm }
+
+    # ---------- 常规(车规) ----------
+    automotive:
+      panel:
+        max_working_panel:   { value: [500, 403], unit: mm }
+        max_pcs:             { value: [500, 300], unit: mm }
+        min_pcs:             { value: [5, 5], unit: mm }
+        max_array:           { value: [500, 300], unit: mm }
+        min_array:           { value: [20, 20], unit: mm }
+        set_to_set_min_gap:  { value: 5, unit: mm }
+        set_min_tooling_rail: { value: 5, unit: mm }
+        set_min_waste_rail:  { value: 5, unit: mm }
+        panel_waste_rail:    { value: 15, unit: mm }
+      stackup:
+        max_layers: { value: 8 }
+        materials: ["FR4", "PP", "纯胶"]
+        impedance_match_tol: { value: 0.1 }
+        copper_standard: { value: "参考IPC标准" }
+      trace:
+        min_line_spacing_by_copper:
+          - { copper_max_um: 25,  line_um: 40,  space_um: 40 }
+          - { copper_min_um: 25,  copper_max_um: 35,  line_um: 50,  space_um: 50 }
+          - { copper_min_um: 35,  copper_max_um: 52,  line_um: 70,  space_um: 70 }
+          - { copper_min_um: 52,  copper_max_um: 70,  line_um: 85,  space_um: 85 }
+          - { copper_min_um: 70,  copper_max_um: 87,  line_um: 110, space_um: 110 }
+          - { copper_min_um: 87,  copper_max_um: 105, line_um: 140, space_um: 140 }
+        line_width_tolerance:
+          - { width_min_um: 50,  width_max_um: 75,  tol_um: 25 }
+          - { width_min_um: 75,  width_max_um: 100, tol_pct: 20 }
+          - { width_min_um: 100, width_max_um: 150, tol_pct: 20 }
+          - { width_min_um: 150, tol_um: 50 }
+        hole_to_hole_spacing:
+          pth_to_pth:       { value: 0.4, unit: mm }
+          pth_to_blind:     { value: 0.3, unit: mm }
+          blind_to_blind:   { value: 0.3, unit: mm }
+        trace_to_board_edge:  { inner: 0.2, outer: 0.2, unit: mm }
+        smt_pad_position_tol:
+          - { pad_max_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 105 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 140 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 160, note: "原表＞160um" }
+          - { pad_max_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 95 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+          - { pad_min_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 105 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 140 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 160, note: "原表＞160um" }
+          - { pad_min_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 95 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+        aoi_min_detect: { value: 1.57, unit: mil }
+      lamination:
+        dielectric_thickness_tol: { value: "0.15" }
+        layer_registration: { value: 0.1, unit: mm }
+        rigid_flex_squeeze: { value: 0.3, unit: mm, note: "≤0.3mm" }
+      impedance:
+        tolerance_bands: { value: 0.1 }
+      drill:
+        min_mech_drill:    { value: 0.15, unit: mm }
+        max_mech_drill:    { value: 6, unit: mm }
+        laser_registration: { value: 15, unit: um }
+        min_laser_via:     { value: 75, unit: um }
+        min_laser_blind:   { value: 65, unit: um }
+        laser_dielectric_limit:
+          - { hole_um: null, dielectric_range_um: [50, 100] }
+        annular_ring_mech:  { value: 0.125, unit: mm }
+        annular_ring_laser: { value: 0.1, unit: mm }
+        pth_drill_tol:  { round_mm: 0.075 }
+        npth_drill_tol: { round_mm: 0.05 }
+        hole_wall_roughness: { value: 25, unit: um }
+        hole_position_tol:
+          - { tol_mm: 0.075 }
+        npth_to_edge: { value: 0.2, unit: mm, note: "不破孔0.2mm，接受破孔0mm" }
+        via_drill_tol: { value: 0.075, unit: mm }
+      plating:
+        blind_via_fill_aspect:   { value: 1.0, unit: ratio }
+        blind_via_fill_rate:     { value: 1, unit: ratio }
+        blind_via_fill_dimple:   { value: 15, unit: um }
+        plating_uniformity:      { value: 5, unit: um }
+        pth_aspect_ratio:        { value: 12, unit: ratio }
+        dimple_bump_inner:       { value: 15, unit: um }
+        dimple_bump_outer:       { value: 15, unit: um }
+      plug_hole:
+        ink_types: ["PSR 2000 CD11B", "R-500BL", "R-500F12", "R-500 F41", "PSR-4000PF10W"]
+        soldermask_plug_min:  { board_thickness_mm: 0.4, hole_mm: 0.2 }
+        resin_plug_min:       { board_thickness_mm: 0.2, hole_mm: 0.1, hole_max_mm: 0.8 }
+        ink_plug_depth:       { value: 70, unit: percent }
+        resin_plug_depth:     { value: 1, unit: ratio }
+        resin_plug_cap_copper: { value: 5, unit: um }
+        plug_colors: [绿色, 黑色, 黄色, 白色, 蓝色]
+        plug_aspect_ratio:    { value: 10, unit: ratio }
+        plug_alignment:       { value: 2, unit: mil }
+      solder_mask:
+        ink_thickness: { value: 20, unit: um }
+        min_bridge_single: { value: 100, unit: um }
+        min_opening:         { value: 0.05, unit: mm }
+        opening_tolerance:   { value: 10, unit: um }
+      coverlay:
+        min_drill:           { value: 0.15, unit: mm }
+        min_window_rect:     { value: [0.6, 0.6], unit: mm }
+        min_window_spacing:  { value: 0.4, unit: mm }
+        window_to_pad:       { value: 0.2, unit: mm, note: "原表±0.2mm" }
+        window_to_trace:     { value: 0.2, unit: mm, note: "原表±0.2mm" }
+        alignment_tol:       { value: 0.2, unit: mm }
+        squeeze_per_side:    { value: 0.15, unit: mm }
+        max_glue_copper_ratio: { value: 1.4, note: "≤1:1.4" }
+      silkscreen:
+        min_line_width:      { value: 4, unit: mil }
+        min_clearance:       { value: 4, unit: mil, note: "原表车规列显示为日期格式，按4mil处理" }
+        min_to_solder_mask:  { value: 4, unit: mil, note: "原表车规列显示为日期格式，按4mil处理" }
+        min_char_size:       { width_mil: 19.69, height_mil: 16.51 }
+        min_to_outline:      { value: 4, unit: mil }
+        ink_max_thickness:   { value: 1, unit: mil }
+        ink_min_thickness:   { value: 0.39, unit: mil }
+      surface_finish:
+        ENIG:      { gold_um: [0.025, 0.1], nickel_um: [3, 8] }
+        hard_gold: { gold_um: [0.076, 3.5], nickel_um: [3, null] }
+        ENEPIG:    { gold_um: [0.03, 0.1], palladium_um: [0.05, 0.3], nickel_um: [3, 8] }
+        OSP:       { film_um: [0.12, 0.35] }
+      routing:
+        min_routing_width:   { value: 0.8, unit: mm }
+        min_waste_width:     { value: 3.5, unit: mm }
+        min_hole_to_edge:    { value: 1.5, unit: mm }
+        min_board_size:      { value: [10, 10], unit: mm }
+        outline_tolerance:   { value: 0.1, unit: mm }
+      fpc_outline:
+        outline_tolerance:   { value: 0.75, unit: mm, note: "原表车规±0.75mm，数据存疑" }
+      stiffener:
+        steel_alignment_tol: { value: 0.1, unit: mm }
+        steel_to_outline:    { normal: 0.15, trapezoid: 0.15, unit: mm }
+        press_fit_size:      { value: [650, 550], unit: mm }
+        press_fit_thickness: { value: 2.0, unit: mm }
+        press_fit_fpc_size:  { value: [650, 550], unit: mm }
+        pi_alignment_tol:    { machine: 0.75, manual: 0.75, unit: mm, note: "原表±0.75mm，数据存疑" }
+        fr4_alignment_tol:   { machine: 0.1, manual: 0.1, unit: mm }
+      test:
+        min_pad: { value: 0.3, unit: mm }
+        shipping_report: true
+        reliability_report: true
+      dimensional:
+        mask_mark_to_mark:        { value: 0.075, unit: mm }
+        mask_mark_to_pad_center:  { value: 0.075, unit: mm }
+
+    # ---------- 极限 ----------
+    extreme:
+      panel:
+        max_working_panel:   { value: [1500, 250], unit: mm }
+        max_pcs:             { value: [1500, 500], unit: mm }
+        min_pcs:             { value: [3, 3], unit: mm }
+        max_array:           { value: [1500, 500], unit: mm }
+        min_array:           { value: [10, 10], unit: mm }
+        set_to_set_min_gap:  { value: 4, unit: mm }
+        set_min_tooling_rail: { value: 4, unit: mm }
+        set_min_waste_rail:  { value: 4, unit: mm }
+        panel_waste_rail:    { value: 12, unit: mm }
+      stackup:
+        max_layers: { value: 20 }
+        materials: ["FR4", "PP", "纯胶"]
+        impedance_match_tol: { value: 0.1 }
+        copper_standard: { value: "参考IPC标准" }
+      trace:
+        min_line_spacing_by_copper:
+          - { copper_max_um: 25,  line_um: 40,  space_um: 40 }
+          - { copper_min_um: 25,  copper_max_um: 35,  line_um: 50,  space_um: 50 }
+          - { copper_min_um: 35,  copper_max_um: 52,  line_um: 70,  space_um: 70 }
+          - { copper_min_um: 52,  copper_max_um: 70,  line_um: 85,  space_um: 85 }
+          - { copper_min_um: 70,  copper_max_um: 87,  line_um: 110, space_um: 110 }
+          - { copper_min_um: 87,  copper_max_um: 105, line_um: 140, space_um: 140 }
+        line_width_tolerance:
+          - { width_min_um: 50,  width_max_um: 75,  tol_um: 25 }
+          - { width_min_um: 75,  width_max_um: 100, tol_pct: 20 }
+          - { width_min_um: 100, width_max_um: 150, tol_pct: 20 }
+          - { width_min_um: 150, tol_um: 50 }
+        hole_to_hole_spacing:
+          pth_to_pth:       { value: 0.4, unit: mm }
+          pth_to_blind:     { value: 0.25, unit: mm }
+          blind_to_blind:   { value: 0.225, unit: mm }
+        trace_to_board_edge:  { inner: 0.2, outer: 0.2, unit: mm }
+        smt_pad_position_tol:
+          - { pad_max_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 95 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_max_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+          - { pad_max_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 85 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 120 }
+          - { pad_max_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 140, note: "原表＞140um" }
+          - { pad_min_um: 200, pad_shape: round,  copper_max_um: 44, tol_um: 95 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 44, copper_max_um: 55, tol_um: 130 }
+          - { pad_min_um: 200, pad_shape: round,  copper_min_um: 55, tol_um: 150, note: "原表＞150um" }
+          - { pad_min_um: 200, pad_shape: rect,   copper_max_um: 44, tol_um: 85 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 44, copper_max_um: 55, tol_um: 120 }
+          - { pad_min_um: 200, pad_shape: rect,   copper_min_um: 55, tol_um: 140, note: "原表＞140um" }
+        aoi_min_detect: { value: 1.37, unit: mil }
+      lamination:
+        dielectric_thickness_tol: { value: "0.1" }
+        layer_registration: { value: 0.075, unit: mm }
+        rigid_flex_squeeze: { value: 0.2, unit: mm, note: "≤0.2mm" }
+      impedance:
+        tolerance_bands: { value: 0.1 }
+      drill:
+        min_mech_drill:    { value: 0.15, unit: mm }
+        max_mech_drill:    { value: 6, unit: mm }
+        laser_registration: { value: 15, unit: um }
+        min_laser_via:     { value: 65, unit: um }
+        min_laser_blind:   { value: 65, unit: um }
+        laser_dielectric_limit:
+          - { hole_um: null, dielectric_range_um: [50, 100] }
+        annular_ring_mech:  { value: 0.1, unit: mm }
+        annular_ring_laser: { value: 0.05, unit: mm }
+        pth_drill_tol:  { round_mm: 0.05 }
+        npth_drill_tol: { round_mm: 0.025 }
+        hole_wall_roughness: { value: 20, unit: um }
+        hole_position_tol:
+          - { tol_mm: 0.05 }
+        npth_to_edge: { value: 0.2, unit: mm, note: "不破孔0.2mm，接受破孔0mm" }
+        via_drill_tol: { value: 0.05, unit: mm }
+      plating:
+        blind_via_fill_aspect:   { value: 1.0, unit: ratio }
+        blind_via_fill_rate:     { value: 1, unit: ratio }
+        blind_via_fill_dimple:   { value: 15, unit: um }
+        plating_uniformity:      { value: 5, unit: um }
+        pth_aspect_ratio:        { value: 32, unit: ratio }
+        dimple_bump_inner:       { value: 15, unit: um }
+        dimple_bump_outer:       { value: 15, unit: um }
+      plug_hole:
+        ink_types: ["PSR 2000 CD11B", "R-500BL", "R-500F12", "R-500 F41", "PSR-4000PF10W"]
+        soldermask_plug_min:  { board_thickness_mm: 0.4, hole_mm: 0.2 }
+        resin_plug_min:       { board_thickness_mm: 0.2, hole_mm: 0.1, hole_max_mm: 0.8 }
+        ink_plug_depth:       { value: 70, unit: percent }
+        resin_plug_depth:     { value: 1, unit: ratio }
+        resin_plug_cap_copper: { value: 5, unit: um }
+        plug_colors: [绿色, 黑色, 黄色, 白色, 蓝色]
+        plug_aspect_ratio:    { value: 10, unit: ratio }
+        plug_alignment:       { value: 2, unit: mil }
+      solder_mask:
+        ink_thickness: { value: 20, unit: um }
+        min_bridge_single: { value: 80, unit: um }
+        min_opening:         { value: 0.025, unit: mm }
+        opening_tolerance:   { value: 10, unit: um }
+      coverlay:
+        min_drill:           { value: 0.15, unit: mm }
+        min_window_rect:     { value: [0.5, 0.5], unit: mm, note: "模具供应商极限能力" }
+        min_window_spacing:  { value: 0.25, unit: mm, note: "模具供应商极限能力" }
+        window_to_pad:       { value: 0.15, unit: mm, note: "原表±0.15mm" }
+        window_to_trace:     { value: 0.15, unit: mm, note: "原表±0.15mm" }
+        alignment_tol:       { value: 0.125, unit: mm }
+        squeeze_per_side:    { value: 70, unit: mm, note: "原表≤70mm，疑似笔误(或为0.07mm)" }
+        max_glue_copper_ratio: { value: 1.6, note: "≤1:1.6" }
+      silkscreen:
+        min_line_width:      { value: 3, unit: mil }
+        min_clearance:       { value: 3, unit: mil }
+        min_to_solder_mask:  { value: 3, unit: mil }
+        min_char_size:       { width_mil: 19.69, height_mil: 16.51 }
+        min_to_outline:      { value: 4, unit: mil }
+        ink_max_thickness:   { value: 1, unit: mil }
+        ink_min_thickness:   { value: 0.39, unit: mil }
+      surface_finish:
+        ENIG:      { gold_um: [0.025, 0.1], nickel_um: [3, 8] }
+        hard_gold: { gold_um: [0.076, 3.5], nickel_um: [3, null] }
+        ENEPIG:    { gold_um: [0.03, 0.1], palladium_um: [0.05, 0.3], nickel_um: [3, 8] }
+        OSP:       { film_um: [0.12, 0.35] }
+      routing:
+        min_routing_width:   { value: 0.8, unit: mm }
+        min_waste_width:     { value: 3, unit: mm }
+        min_hole_to_edge:    { value: 1.0, unit: mm }
+        min_board_size:      { value: [10, 10], unit: mm }
+        outline_tolerance:   { value: 0.05, unit: mm }
+      fpc_outline:
+        outline_tolerance:   { value: 0.05, unit: mm }
+      stiffener:
+        steel_alignment_tol: { value: 0.75, unit: mm, note: "原表±0.75mm，数据存疑" }
+        steel_to_outline:    { normal: 0.1, trapezoid: 0.1, unit: mm }
+        press_fit_size:      { value: [650, 550], unit: mm }
+        press_fit_thickness: { value: 2.0, unit: mm }
+        press_fit_fpc_size:  { value: [650, 550], unit: mm }
+        pi_alignment_tol:    { machine: 0.05, manual: 0.05, unit: mm }
+        fr4_alignment_tol:   { machine: 0.75, manual: 0.75, unit: mm, note: "原表±0.75mm，数据存疑" }
+      test:
+        min_pad: { value: 0.08, unit: mm }
+        shipping_report: true
+        reliability_report: true
+      dimensional:
+        mask_mark_to_mark:        { value: 0.075, unit: mm }
+        mask_mark_to_pad_center:  { value: 0.075, unit: mm }
